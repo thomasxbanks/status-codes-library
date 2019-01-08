@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    html * {
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-size: 1.3rem;
+        line-height: 1.6;
+        color: #454545;
+        margin: 0;
+        padding: 2rem;
+      }
+      
+      form {
+        background: whitesmoke;
+        padding: 1rem;
+        width: 100%;
+        max-width: 50rem;
+        margin: 1rem auto;
+        font-size: 0;
+      }
+      
+      form input[type="number"],
+      form small {
+        display: block;
+        margin-top: 1em;
+      }
+      
+      label {
+        display: inline-block;
+        font-size: 1.5rem;
+        font-weight: bold;
+        vertical-align: bottom;
+        width: calc(100% - 5rem);
+      }
+      
+      label small {
+        font-size: 0.75rem;
+        font-weight: normal;
+      }
+      
+      form input[type="number"] {
+        width: calc(100% - 1rem);
+        max-width: 300px;
+        padding: 1rem;
+        margin: 1em 1rem 0 0;
+      }
+      form input:focus {
+        outline: 2px solid orangered;
+      }
+      form input[type="submit"] {
+        -webkit-appearance: none;
+        padding: 1rem;
+        width: 5rem;
+        border: none;
+        background: dodgerblue;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: bold;
+      }
+      
+      form input[type="submit"]:hover {
+        background: orangered;
+      }
+      
+      .section-parent {
+        padding: 1rem;
+        max-width: 50rem;
+        margin: 1rem auto;
+        font-size: 1rem;
+        color: dimgray;
+      }
+      
+      .section-detail {
+        padding: 1rem;
+        max-width: 50rem;
+        margin: 1rem auto;
+        font-size: 1.5rem;
+        color: #454545;
+        margin-top: 1rem;
+        border-top: 1px solid silver;
+      }
+      
+      pre {
+        background: whitesmoke;
+        border: 1px solid silver;
+        padding: 0.5rem;
+        font-family: 'Hack', 'Fira Code', 'Fira Mono', 'Liberation Mono', 'Ubuntu Mono', monospace;
+        color: dimgray;
+        font-size: 1rem;
+        overflow: auto;
+      }
+      
+      a {
+        color: dodgerblue;
+      }
+      
+      h3 a {
+        display: none;
+      }
+  </style>
+</head>
+
+<body>
+  <form action="/" method="POST" type="application/x-www-form-urlencoded">
+    <label for="status">
+      Status Code
+      <small>Submit the form without a value to see <strong>all</strong> descriptions</small>
+      <input name="status" type="number" min="100" max="500" step="1" value="">
+    </label>
+    <input type="submit" value="submit">
+  </form>
+  <main></main>
+  <script>
+    document.querySelector('input[type="number"').focus()
+    document.querySelector('form').addEventListener('submit', (e) => {
+      e.preventDefault()
+      getStatusDescription(e.currentTarget.querySelector('input[type="number"').value)
+    })
+
+    const main = document.querySelector('main')
+    const textUrl = 'https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html'
+
+
+    function makeHttpObject() {
+      try {
+        return new XMLHttpRequest();
+      } catch (error) {}
+      try {
+        return new ActiveXObject("Msxml2.XMLHTTP");
+      } catch (error) {}
+      try {
+        return new ActiveXObject("Microsoft.XMLHTTP");
+      } catch (error) {}
+
+      throw new Error("Could not create HTTP request object.");
+    }
+    var request = makeHttpObject();
+
+    const getStatusDescription = (targetStatus) => {
+      request.open("GET", textUrl, true);
+      request.send(null);
+      request.onreadystatechange = function () {
+        main.innerHTML = request.responseText
+        let elements = main.querySelectorAll('*')
+        elements.forEach((element) => {
+          if (element.tagName === 'H3' && element.innerHTML.indexOf(`${targetStatus.charAt(0)}xx`) > -1) {
+            let siblings = nextUntil(element, 'H3')
+            var wrapper = document.createElement('section');
+            wrapper.classList.add('section-parent')
+            element.parentElement.insertBefore(wrapper, element);
+            document.querySelector('.section-parent').appendChild(element);
+            siblings.forEach((sibling) => {
+              document.querySelector('.section-parent').appendChild(sibling);
+            })
+          }
+          if (element.tagName === 'H3' && element.innerHTML.indexOf(targetStatus) > -1) {
+            let siblings = nextUntil(element, 'H3')
+            var wrapper = document.createElement('section');
+            wrapper.classList.add('section-detail')
+            element.parentElement.insertBefore(wrapper, element);
+            document.querySelector('.section-detail').appendChild(element);
+            siblings.forEach((sibling) => {
+              document.querySelector('.section-detail').appendChild(sibling);
+            })
+          }
+          var allParents = getParents(element.parentNode);
+          if (allParents.some(e => e.tagName === 'SECTION')) {
+
+          } else {
+            element.outerHTML = ''
+          }
+        })
+
+
+      };
+    }
+
+
+    var nextUntil = function (elem, selector) {
+      // Setup siblings array
+      var siblings = [];
+      // Get the next sibling element
+      elem = elem.nextElementSibling;
+      // As long as a sibling exists
+      while (elem) {
+        // If we've reached our match, bail
+        if (elem.matches(selector)) break;
+        // Otherwise, push it to the siblings array
+        siblings.push(elem);
+        // Get the next sibling element
+        elem = elem.nextElementSibling;
+      }
+      return siblings;
+    };
+
+
+    var getParents = function (elem, selector) {
+
+      // Element.matches() polyfill
+      if (!Element.prototype.matches) {
+        Element.prototype.matches =
+          Element.prototype.matchesSelector ||
+          Element.prototype.mozMatchesSelector ||
+          Element.prototype.msMatchesSelector ||
+          Element.prototype.oMatchesSelector ||
+          Element.prototype.webkitMatchesSelector ||
+          function (s) {
+            var matches = (this.document || this.ownerDocument).querySelectorAll(s),
+              i = matches.length;
+            while (--i >= 0 && matches.item(i) !== this) {}
+            return i > -1;
+          };
+      }
+
+      // Setup parents array
+      var parents = [];
+
+      // Get matching parent elements
+      for (; elem && elem !== document; elem = elem.parentNode) {
+
+        // Add matching parents to array
+        if (selector) {
+          if (elem.matches(selector)) {
+            parents.push(elem);
+          }
+        } else {
+          parents.push(elem);
+        }
+
+      }
+
+      return parents;
+
+    };
+  </script>
+</body>
+
+</html>
